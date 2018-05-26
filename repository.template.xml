@@ -17,10 +17,10 @@
 -->
 
 <!DOCTYPE Repository
-        PUBLIC "-//The Apache Software Foundation//DTD Jackrabbit 2.0//EN"
-        "http://jackrabbit.apache.org/dtd/repository-2.0.dtd">
+          PUBLIC "-//The Apache Software Foundation//DTD Jackrabbit 2.0//EN"
+          "http://jackrabbit.apache.org/dtd/repository-2.0.dtd">
 
-<!-- Example Repository Configuration File
+<!-- This file has been modified based on the Example Repository Configuration File
      Used by
      - org.apache.jackrabbit.core.config.RepositoryConfigTest.java
      -
@@ -30,14 +30,31 @@
         virtual file system where the repository stores global state
         (e.g. registered namespaces, custom node types, etc.)
     -->
-    <FileSystem class="org.apache.jackrabbit.core.fs.local.LocalFileSystem">
-        <param name="path" value="${rep.home}/repository"/>
+    <FileSystem class="org.apache.jackrabbit.core.fs.db.DbFileSystem">
+        <param name="driver" value="org.postgresql.Driver"/>
+        <param name="url" value="jdbc:postgresql://${ENV.DB_POSTGRES_HOST}/${ENV.POSTGRES_DB}"/>
+        <param name="schema" value="postgresql"/>
+        <param name="user" value="${ENV.POSTGRES_USER}"/>
+        <param name="password" value="${ENV.POSTGRES_PASSWORD}"/>
+        <param name="schemaObjectPrefix" value="globalstate_"/>
     </FileSystem>
 
     <!--
         data store configuration
     -->
-    <DataStore class="org.apache.jackrabbit.core.data.FileDataStore"/>
+    <DataStore class="org.apache.jackrabbit.core.data.db.DbDataStore">
+        <param name="url" value="jdbc:postgresql://${ENV.DB_POSTGRES_HOST}/${ENV.POSTGRES_DB}"/>
+        <param name="schema" value="postgresql"/>
+        <param name="user" value="${ENV.POSTGRES_USER}"/>
+        <param name="password" value="${ENV.POSTGRES_PASSWORD}"/>
+        <param name="databaseType" value="postgresql"/>
+        <param name="driver" value="org.postgresql.Driver"/>
+        <param name="minRecordLength" value="1024"/>
+        <param name="maxConnections" value="3"/>
+        <param name="copyWhenReading" value="true"/>
+        <param name="tablePrefix" value=""/>
+        <param name="schemaObjectPrefix" value=""/>
+    </DataStore>
 
     <!--
         security configuration
@@ -65,14 +82,14 @@
         </AccessManager>
 
         <LoginModule class="org.apache.jackrabbit.core.security.authentication.DefaultLoginModule">
-            <!--
-               anonymous user name ('anonymous' is the default value)
-             -->
-            <param name="anonymousId" value="anonymous"/>
-            <!--
-               administrator user id (default value if param is missing is 'admin')
-             -->
-            <param name="adminId" value="admin"/>
+           <!-- 
+              anonymous user name ('anonymous' is the default value)
+            -->
+           <param name="anonymousId" value="anonymous"/>
+           <!--
+              administrator user id (default value if param is missing is 'admin')
+            -->
+           <param name="adminId" value="admin"/>
         </LoginModule>
     </Security>
 
@@ -89,20 +106,26 @@
             virtual file system of the workspace:
             class: FQN of class implementing the FileSystem interface
         -->
-        <FileSystem class="org.apache.jackrabbit.core.fs.local.LocalFileSystem">
-            <param name="path" value="${wsp.home}"/>
+        <FileSystem class="org.apache.jackrabbit.core.fs.db.DbFileSystem">
+            <param name="driver" value="org.postgresql.Driver"/>
+            <param name="url" value="jdbc:postgresql://${ENV.DB_POSTGRES_HOST}/${ENV.POSTGRES_DB}"/>
+            <param name="schema" value="postgresql"/>
+            <param name="user" value="${ENV.POSTGRES_USER}"/>
+            <param name="password" value="${ENV.POSTGRES_PASSWORD}"/>
+            <param name="schemaObjectPrefix" value="pm_${wsp.name}_"/>
         </FileSystem>
+
         <!--
             persistence manager of the workspace:
             class: FQN of class implementing the PersistenceManager interface
         -->
-        <PersistenceManager class="org.apache.jackrabbit.core.persistence.pool.MySqlPersistenceManager">
-            <param name="driver" value="com.mysql.jdbc.Driver"/>
-            <param name="url" value="jdbc:mysql://${ENV.DATABASE_HOST}:${ENV.DATABASE_PORT}/${ENV.DATABASE_NAME}"/>
-            <param name="user" value="${ENV.DATABASE_USER}"/>
-            <param name="password" value="${ENV.DATABASE_PASS}"/>         <!-- use your database user's password -->
-            <param name="schema" value="mysql"/>
-            <param name="schemaObjectPrefix" value="pm_ws_${wsp.name}_"/>
+        <PersistenceManager class="org.apache.jackrabbit.core.persistence.pool.PostgreSQLPersistenceManager">
+            <param name="driver" value="org.postgresql.Driver"/>
+            <param name="url" value="jdbc:postgresql://${ENV.DB_POSTGRES_HOST}/${ENV.POSTGRES_DB}"/>
+            <param name="schema" value="postgresql"/>
+            <param name="user" value="${ENV.POSTGRES_USER}"/>
+            <param name="password" value="${ENV.POSTGRES_PASSWORD}"/>
+            <param name="schemaObjectPrefix" value="pm_${wsp.name}_"/>
         </PersistenceManager>
         <!--
             Search index and the file system it uses.
@@ -122,8 +145,13 @@
             Configures the filesystem to use for versioning for the respective
             persistence manager
         -->
-        <FileSystem class="org.apache.jackrabbit.core.fs.local.LocalFileSystem">
-            <param name="path" value="${rep.home}/version"/>
+        <FileSystem class="org.apache.jackrabbit.core.fs.db.DbFileSystem">
+            <param name="driver" value="org.postgresql.Driver"/>
+            <param name="url" value="jdbc:postgresql://${ENV.DB_POSTGRES_HOST}/${ENV.POSTGRES_DB}"/>
+            <param name="schema" value="postgresql"/>
+            <param name="user" value="${ENV.POSTGRES_USER}"/>
+            <param name="password" value="${ENV.POSTGRES_PASSWORD}"/>
+            <param name="schemaObjectPrefix" value="version_"/>
         </FileSystem>
 
         <!--
@@ -132,14 +160,15 @@
             a 'normal' persistence manager, but this could change in future
             implementations.
         -->
-        <PersistenceManager class="org.apache.jackrabbit.core.persistence.pool.MySqlPersistenceManager">
-            <param name="driver" value="com.mysql.jdbc.Driver"/>
-            <param name="url" value="jdbc:mysql://${ENV.DATABASE_HOST}:${ENV.DATABASE_PORT}/${ENV.DATABASE_NAME}"/>
-            <param name="user" value="${ENV.DATABASE_USER}"/>
-            <param name="password" value="${ENV.DATABASE_PASS}"/>             <!-- use your database user's password -->
-            <param name="schema" value="mysql"/>
-            <param name="schemaObjectPrefix" value="pm_vs_"/>
+        <PersistenceManager class="org.apache.jackrabbit.core.persistence.pool.PostgreSQLPersistenceManager">
+            <param name="driver" value="org.postgresql.Driver"/>
+            <param name="url" value="jdbc:postgresql://${ENV.DB_POSTGRES_HOST}/${ENV.POSTGRES_DB}"/>
+            <param name="schema" value="postgresql"/>
+            <param name="user" value="${ENV.POSTGRES_USER}"/>
+            <param name="password" value="${ENV.POSTGRES_PASSWORD}"/>
+            <param name="schemaObjectPrefix" value="version_"/>
         </PersistenceManager>
+
     </Versioning>
 
     <!--
@@ -154,15 +183,7 @@
     <!--
         Run with a cluster journal
     -->
-    <Cluster id="${ENV.HOSTNAME}">
-        <Journal class="org.apache.jackrabbit.core.journal.DatabaseJournal">
-            <param name="revision" value="${rep.home}/revision"/>
-            <param name="driver" value="com.mysql.jdbc.Driver"/>
-            <param name="url" value="jdbc:mysql://${ENV.DATABASE_HOST}:${ENV.DATABASE_PORT}/${ENV.DATABASE_NAME}"/>
-            <param name="user" value="${ENV.DATABASE_USER}"/>
-            <param name="password" value="${ENV.DATABASE_PASS}"/>
-            <param name="databaseType" value="mysql"/>
-            <param name="schemaObjectPrefix" value="JOURNAL_"/>
-        </Journal>
+    <Cluster id="node1">
+        <Journal class="org.apache.jackrabbit.core.journal.MemoryJournal"/>
     </Cluster>
 </Repository>
